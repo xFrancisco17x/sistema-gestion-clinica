@@ -1,0 +1,400 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ============ AUTH & USERS ============
+
+model User {
+  id            Int       @id @default(autoincrement())
+  username      String    @unique
+  email         String    @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  isActive      Boolean   @default(true)
+  failedAttempts Int      @default(0)
+  lockedUntil   DateTime?
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  roleId Int
+  role   Role @relation(fields: [roleId], references: [id])
+
+  doctor      Doctor?
+  auditEvents AuditEvent[]
+  sessions    Session[]
+}
+
+model Role {
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  description String?
+
+  users       User[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id       Int    @id @default(autoincrement())
+  module   String
+  action   String
+  description String?
+
+  roles RolePermission[]
+
+  @@unique([module, action])
+}
+
+model RolePermission {
+  id           Int @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId])
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// ============ PATIENTS ============
+
+model Patient {
+  id                 Int       @id @default(autoincrement())
+  medicalRecordNumber String   @unique
+  idType             String    @default("cedula")
+  idNumber           String    @unique
+  firstName          String
+  lastName           String
+  dateOfBirth        DateTime
+  gender             String
+  phone              String?
+  email              String?
+  address            String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  bloodType          String?
+  allergies          String?
+  notes              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
+
+  documents          PatientDocument[]
+  appointments       Appointment[]
+  medicalAttentions  MedicalAttention[]
+  invoices           Invoice[]
+  insurancePolicies  InsurancePolicy[]
+}
+
+model PatientDocument {
+  id          Int      @id @default(autoincrement())
+  patientId   Int
+  fileName    String
+  fileType    String
+  filePath    String
+  description String?
+  uploadedAt  DateTime @default(now())
+
+  patient Patient @relation(fields: [patientId], references: [id])
+}
+
+// ============ MEDICAL STAFF ============
+
+model Specialty {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  isActive    Boolean @default(true)
+
+  doctors  Doctor[]
+}
+
+model Doctor {
+  id           Int     @id @default(autoincrement())
+  userId       Int     @unique
+  specialtyId  Int
+  licenseNumber String?
+  phone        String?
+  isActive     Boolean @default(true)
+
+  user      User      @relation(fields: [userId], references: [id])
+  specialty Specialty @relation(fields: [specialtyId], references: [id])
+
+  schedules       DoctorSchedule[]
+  scheduleBlocks  ScheduleBlock[]
+  appointments    Appointment[]
+  medicalAttentions MedicalAttention[]
+}
+
+model DoctorSchedule {
+  id        Int    @id @default(autoincrement())
+  doctorId  Int
+  dayOfWeek Int    // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime String // "08:00"
+  endTime   String // "17:00"
+  slotDuration Int @default(30) // minutes
+
+  doctor Doctor @relation(fields: [doctorId], references: [id])
+
+  @@unique([doctorId, dayOfWeek])
+}
+
+model ScheduleBlock {
+  id        Int      @id @default(autoincrement())
+  doctorId  Int
+  startDate DateTime
+  endDate   DateTime
+  reason    String
+  blockType String   @default("other") // lunch, vacation, holiday, meeting, other
+
+  doctor Doctor @relation(fields: [doctorId], references: [id])
+}
+
+// ============ APPOINTMENTS ============
+
+model Appointment {
+  id          Int      @id @default(autoincrement())
+  patientId   Int
+  doctorId    Int
+  dateTime    DateTime
+  endTime     DateTime
+  reason      String?
+  status      String   @default("scheduled") // scheduled, confirmed, cancelled, rescheduled, attended, no_show
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  patient  Patient @relation(fields: [patientId], references: [id])
+  doctor   Doctor  @relation(fields: [doctorId], references: [id])
+
+  history          AppointmentHistory[]
+  medicalAttention MedicalAttention?
+}
+
+model AppointmentHistory {
+  id            Int      @id @default(autoincrement())
+  appointmentId Int
+  previousStatus String
+  newStatus     String
+  reason        String?
+  changedBy     Int?
+  changedAt     DateTime @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+}
+
+// ============ MEDICAL ATTENTION ============
+
+model MedicalAttention {
+  id              Int       @id @default(autoincrement())
+  appointmentId   Int?      @unique
+  patientId       Int
+  doctorId        Int
+  chiefComplaint  String?
+  vitalSigns      String?
+  anamnesis       String?
+  physicalExam    String?
+  status          String    @default("in_progress") // in_progress, closed
+  closedAt        DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  appointment  Appointment? @relation(fields: [appointmentId], references: [id])
+  patient      Patient      @relation(fields: [patientId], references: [id])
+  doctor       Doctor       @relation(fields: [doctorId], references: [id])
+
+  diagnoses     Diagnosis[]
+  prescriptions Prescription[]
+  clinicalNotes ClinicalNote[]
+  invoices      Invoice[]
+}
+
+model Diagnosis {
+  id              Int    @id @default(autoincrement())
+  attentionId     Int
+  code            String? // CIE-10
+  description     String
+  type            String  @default("primary") // primary, secondary
+
+  attention MedicalAttention @relation(fields: [attentionId], references: [id])
+}
+
+model Prescription {
+  id            Int    @id @default(autoincrement())
+  attentionId   Int
+  medication    String
+  dosage        String?
+  frequency     String?
+  duration      String?
+  instructions  String?
+
+  attention MedicalAttention @relation(fields: [attentionId], references: [id])
+}
+
+model ClinicalNote {
+  id          Int      @id @default(autoincrement())
+  attentionId Int
+  noteType    String   @default("evolution") // evolution, amendment
+  content     String
+  createdAt   DateTime @default(now())
+  createdBy   Int?
+
+  attention MedicalAttention @relation(fields: [attentionId], references: [id])
+}
+
+// ============ BILLING ============
+
+model Service {
+  id          Int     @id @default(autoincrement())
+  code        String  @unique
+  name        String
+  description String?
+  price       Float
+  category    String  @default("consultation")
+  isActive    Boolean @default(true)
+
+  invoiceDetails InvoiceDetail[]
+}
+
+model Invoice {
+  id            Int       @id @default(autoincrement())
+  invoiceNumber String    @unique
+  patientId     Int
+  attentionId   Int?
+  subtotal      Float     @default(0)
+  tax           Float     @default(0)
+  total         Float     @default(0)
+  status        String    @default("draft") // draft, issued, cancelled
+  paymentStatus String    @default("pending") // pending, partial, paid
+  insuranceClaimId Int?
+  notes         String?
+  issuedAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  patient    Patient           @relation(fields: [patientId], references: [id])
+  attention  MedicalAttention? @relation(fields: [attentionId], references: [id])
+
+  details    InvoiceDetail[]
+  payments   Payment[]
+}
+
+model InvoiceDetail {
+  id          Int   @id @default(autoincrement())
+  invoiceId   Int
+  serviceId   Int?
+  description String
+  quantity    Int   @default(1)
+  unitPrice   Float
+  subtotal    Float
+
+  invoice Invoice  @relation(fields: [invoiceId], references: [id])
+  service Service? @relation(fields: [serviceId], references: [id])
+}
+
+model Payment {
+  id          Int      @id @default(autoincrement())
+  invoiceId   Int
+  amount      Float
+  method      String   @default("cash") // cash, transfer, card, other
+  reference   String?
+  paidAt      DateTime @default(now())
+  receivedBy  Int?
+  notes       String?
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+}
+
+// ============ INSURANCE ============
+
+model Insurer {
+  id        Int     @id @default(autoincrement())
+  name      String  @unique
+  ruc       String?
+  phone     String?
+  email     String?
+  address   String?
+  isActive  Boolean @default(true)
+
+  policies InsurancePolicy[]
+  claims   InsuranceClaim[]
+}
+
+model InsurancePolicy {
+  id           Int      @id @default(autoincrement())
+  patientId    Int
+  insurerId    Int
+  policyNumber String
+  coveragePercent Float @default(0)
+  maxCoverage  Float?
+  startDate    DateTime
+  endDate      DateTime?
+  isActive     Boolean  @default(true)
+
+  patient  Patient  @relation(fields: [patientId], references: [id])
+  insurer  Insurer  @relation(fields: [insurerId], references: [id])
+
+  claims InsuranceClaim[]
+}
+
+model InsuranceClaim {
+  id            Int      @id @default(autoincrement())
+  policyId      Int
+  insurerId     Int
+  invoiceId     Int?
+  claimAmount   Float
+  approvedAmount Float?
+  status        String   @default("pending") // pending, approved, rejected, paid
+  submittedAt   DateTime @default(now())
+  resolvedAt    DateTime?
+  notes         String?
+
+  policy  InsurancePolicy @relation(fields: [policyId], references: [id])
+  insurer Insurer         @relation(fields: [insurerId], references: [id])
+}
+
+// ============ SYSTEM ============
+
+model SystemParameter {
+  id    Int    @id @default(autoincrement())
+  key   String @unique
+  value String
+  description String?
+}
+
+model AuditEvent {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  action     String
+  module     String
+  entityType String?
+  entityId   Int?
+  before     String?
+  after      String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+}
