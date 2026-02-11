@@ -96,7 +96,36 @@ export default function Dashboard() {
                     </div>
                 )}
 
-
+                <div className="card">
+                    <div className="card-header">
+                        <h3>🏥 Accesos rápidos</h3>
+                    </div>
+                    <div className="card-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+                        {[
+                            { label: 'Nuevo Paciente', icon: '👤', href: '/patients', color: 'var(--primary-500)' },
+                            { label: 'Agendar Cita', icon: '📅', href: '/appointments', color: 'var(--accent-500)' },
+                            { label: 'Atención Médica', icon: '🩺', href: '/medical', color: '#8b5cf6' },
+                            { label: 'Facturación', icon: '💰', href: '/billing', color: 'var(--warning)' },
+                            { label: 'Reportes', icon: '📈', href: '/reports', color: 'var(--danger)' },
+                        ].map(item => (
+                            <a
+                                key={item.label}
+                                href={item.href}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '12px',
+                                    padding: '16px', borderRadius: 'var(--radius)',
+                                    border: '1px solid var(--gray-200)', textDecoration: 'none',
+                                    transition: 'all 0.2s', cursor: 'pointer'
+                                }}
+                                onMouseOver={e => { e.currentTarget.style.boxShadow = 'var(--shadow-md)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                onMouseOut={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}
+                            >
+                                <span style={{ fontSize: '24px' }}>{item.icon}</span>
+                                <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>{item.label}</span>
+                            </a>
+                        ))}
+                    </div>
+                </div>
             </div>
         </>
     );
