@@ -24,7 +24,8 @@ router.get('/', authenticate, async (req, res) => {
 
         res.json(doctors);
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener médicos' });
+        console.error('Error fetching doctors:', error);
+        res.status(500).json({ error: 'Error al obtener médicos', details: error.message });
     }
 });
 

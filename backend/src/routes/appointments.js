@@ -84,7 +84,7 @@ router.get('/', authenticate, requirePermission('appointments', 'read'), async (
         });
     } catch (error) {
         console.error('Error fetching appointments:', error);
-        res.status(500).json({ error: 'Error al obtener citas' });
+        res.status(500).json({ error: 'Error al obtener citas', details: error.message });
     }
 });
 

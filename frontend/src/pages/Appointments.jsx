@@ -6,7 +6,10 @@ export default function Appointments() {
     const [appointments, setAppointments] = useState([]);
     const [doctors, setDoctors] = useState([]);
     const [filterDoctor, setFilterDoctor] = useState('');
-    const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+    const [filterDate, setFilterDate] = useState(() => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    });
     const [filterStatus, setFilterStatus] = useState('');
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -29,7 +32,7 @@ export default function Appointments() {
     };
 
     useEffect(() => {
-        api.get('/doctors').then(setDoctors).catch(console.error);
+        api.get('/doctors').then(setDoctors).catch(err => setError('Error cargando médicos: ' + err.message));
         fetchAppointments();
     }, []);
 

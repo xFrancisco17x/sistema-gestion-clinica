@@ -19,7 +19,8 @@ export default function PatientDetail() {
     if (loading) return <div className="loading-spinner"><div className="spinner"></div></div>;
     if (!patient) return null;
 
-    const age = Math.floor((Date.now() - new Date(patient.dateOfBirth)) / 31557600000);
+    const dob = patient.dateOfBirth.split('T')[0] + 'T12:00:00';
+    const age = Math.floor((Date.now() - new Date(dob)) / 31557600000);
     const tabs = [
         { key: 'info', label: '📋 Datos Personales' },
         { key: 'appointments', label: `📅 Citas (${patient.appointments?.length || 0})` },
@@ -65,7 +66,7 @@ export default function PatientDetail() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
                                 <InfoField label="Nombre completo" value={`${patient.firstName} ${patient.lastName}`} />
                                 <InfoField label="Identificación" value={`${patient.idType?.toUpperCase()}: ${patient.idNumber}`} />
-                                <InfoField label="Fecha de nacimiento" value={`${new Date(patient.dateOfBirth).toLocaleDateString('es-EC')} (${age} años)`} />
+                                <InfoField label="Fecha de nacimiento" value={`${new Date(dob).toLocaleDateString('es-EC', { timeZone: 'UTC' })} (${age} años)`} />
                                 <InfoField label="Sexo" value={patient.gender === 'M' ? 'Masculino' : 'Femenino'} />
                                 <InfoField label="Teléfono" value={patient.phone} />
                                 <InfoField label="Email" value={patient.email} />

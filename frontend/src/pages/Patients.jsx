@@ -125,7 +125,7 @@ export default function Patients() {
                                                 </td>
                                                 <td>{p.phone || '—'}</td>
                                                 <td>{p.email || '—'}</td>
-                                                <td>{p.dateOfBirth ? Math.floor((Date.now() - new Date(p.dateOfBirth)) / 31557600000) : '—'}</td>
+                                                <td>{p.dateOfBirth ? Math.floor((Date.now() - new Date(p.dateOfBirth.split('T')[0] + 'T12:00:00')) / 31557600000) : '—'}</td>
                                                 <td>{p.gender === 'M' ? '♂ Masc.' : '♀ Fem.'}</td>
                                                 <td>
                                                     <div style={{ display: 'flex', gap: '6px' }}>

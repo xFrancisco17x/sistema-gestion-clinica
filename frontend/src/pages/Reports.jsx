@@ -5,11 +5,12 @@ export default function Reports() {
     const [tab, setTab] = useState('dashboard');
     const [dashboard, setDashboard] = useState(null);
     const [report, setReport] = useState(null);
+    const getLocalDate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const [startDate, setStartDate] = useState(() => {
         const d = new Date(); d.setMonth(d.getMonth() - 1);
-        return d.toISOString().split('T')[0];
+        return getLocalDate(d);
     });
-    const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+    const [endDate, setEndDate] = useState(getLocalDate(new Date()));
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
