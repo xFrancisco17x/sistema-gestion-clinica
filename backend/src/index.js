@@ -94,6 +94,8 @@ app.use((req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🏥 Clínica Vida Salud API corriendo en puerto ${PORT}`);
+  // Seed database on first run (uses shared PrismaClient, no extra connections)
+  require('./startup-seed')();
 });
 
 module.exports = app;
