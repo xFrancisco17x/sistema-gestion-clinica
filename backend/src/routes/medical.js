@@ -1,11 +1,10 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { authenticate } = require('../middleware/auth');
 const { requirePermission, requireRole } = require('../middleware/rbac');
 const { auditLog } = require('../middleware/audit');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // POST /api/medical/attentions — Start medical attention from appointment
 router.post('/attentions', authenticate, requireRole('Médico', 'Administrador'), async (req, res) => {

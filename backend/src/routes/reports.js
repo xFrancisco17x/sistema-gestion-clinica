@@ -1,10 +1,9 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { authenticate } = require('../middleware/auth');
 const { requirePermission, requireRole } = require('../middleware/rbac');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // GET /api/reports/dashboard — Dashboard KPIs
 router.get('/dashboard', authenticate, requirePermission('reports', 'read'), async (req, res) => {

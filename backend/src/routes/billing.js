@@ -1,11 +1,10 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { authenticate } = require('../middleware/auth');
 const { requirePermission } = require('../middleware/rbac');
 const { auditLog } = require('../middleware/audit');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Helper: generate invoice number
 const generateInvoiceNumber = async () => {

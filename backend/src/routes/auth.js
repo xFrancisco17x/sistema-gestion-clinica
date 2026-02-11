@@ -1,12 +1,11 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { authenticate, JWT_SECRET } = require('../middleware/auth');
 const { auditLog } = require('../middleware/audit');
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // GET /api/auth/login (test endpoint - browser verification)
 router.get('/login', (req, res) => {
