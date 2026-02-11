@@ -47,6 +47,11 @@ app.use(morgan('combined'));
 // Static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ message: '🏥 API Clínica Vida Salud funcionando correctamente 🚀', status: 'ok' });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/patients', patientRoutes);
