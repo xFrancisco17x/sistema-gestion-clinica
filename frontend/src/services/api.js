@@ -1,4 +1,4 @@
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 class ApiService {
     constructor() {
@@ -24,9 +24,11 @@ class ApiService {
 
         const response = await fetch(url, { ...options, headers });
 
-        if (response.status === 401) {
+        if (response.status === 401 && !endpoint.startsWith('/auth/')) {
             this.setToken(null);
-            window.location.href = '/login';
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+            }
             throw new Error('Sesión expirada');
         }
 
