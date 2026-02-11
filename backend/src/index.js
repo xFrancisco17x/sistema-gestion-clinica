@@ -77,8 +77,8 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🏥 Clínica Vida Salud API corriendo en http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🏥 Clínica Vida Salud API corriendo en puerto ${PORT}`);
 });
 
 module.exports = app;
