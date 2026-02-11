@@ -8,6 +8,11 @@ const { auditLog } = require('../middleware/audit');
 const router = express.Router();
 const prisma = new PrismaClient();
 
+// GET /api/auth/login (test endpoint - browser verification)
+router.get('/login', (req, res) => {
+    res.json({ message: 'Login route alive', method: 'Use POST to login', endpoint: 'POST /api/auth/login' });
+});
+
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
     try {
